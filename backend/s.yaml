@@ -1,0 +1,45 @@
+edition: 3.0.0
+name: resume-analyzer
+access: default
+
+vars:
+  region: cn-hangzhou
+
+resources:
+  resume_analyzer:
+    component: fc3
+    props:
+      region: ${vars.region}
+      functionName: resume-analyzer
+      runtime: custom.debian11
+      cpu: 1
+      memorySize: 2048
+      diskSize: 512
+      timeout: 300
+      instanceConcurrency: 100
+      environmentVariables:
+        PYTHONPATH: /code
+        REDIS_HOST: ${env(REDIS_HOST)}
+        REDIS_PORT: ${env(REDIS_PORT)}
+        REDIS_PASSWORD: ${env(REDIS_PASSWORD)}
+        DASHSCOPE_API_KEY: ${env(DASHSCOPE_API_KEY)}
+      customRuntimeConfig:
+        command:
+          - uvicorn
+          - app.main:app
+          - --host
+          - 0.0.0.0
+          - --port
+          - "9000"
+      functionHandler: index.handler
+      code: ./
+      triggers:
+        - triggerName: httpTrigger
+          triggerType: http
+          triggerConfig:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
